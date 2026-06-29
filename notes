@@ -1,51 +1,12 @@
-python eval_agent.py --episodes 10 --seed 42
-
-Those are our ablations 
---------------------------------
-
-1) Main algorithm comparison. {Salma}
-Train PPO, PPO-Sparsity, DQN-Dueling, and DQN-Doubling on the exact same traffic patterns, state space, reward function, and action limits. Report mean and standard deviation over at least 5 random seeds for return, latency, cost, dropped requests, and action stability.
-
-2) Sparse-update ablation. {Sherouk}
-For each base algorithm, vary the update frequency, such as every step, every 2 steps, every 4 steps, and every 8 steps. This directly tests whether sparse updates improve compute efficiency or hurt control quality, which matches your proposal and the sparse-update idea in the literature.
-
-3) Traffic-stress test. {Salma}
-Evaluate on deterministic traffic, Poisson arrivals, and bursty spike traffic. This is important because cloud autoscaling papers often stress that policies must generalize to workload variation, not just one smooth demand pattern.
-
-4) Cold-start test. {Yehya}
-Compare performance with and without booting delay. This is one of the best experiments for autoscaling, because proactive policies only matter when the system cannot react instantly.
-
-5) Reward-shaping sensitivity. {Yehya}
-Sweep the reward weights 𝛼,𝛽,𝛾,𝜔 and see how much each algorithm depends on the penalty design. This helps show whether one method is inherently more robust or just more sensitive to reward tuning
-
-###########
-
-Vanilla dqn
-Double dqn
-Dueling dqn
-Double/Dueling dqn
-Ppo
-Ppo recurrent
+python train_a2c_variants.py --variant balanced --timesteps 2000000 --device auto --seed 0
+python train_a2c_variants.py --variant cost_aware --timesteps 2000000 --device auto --seed 0
+python train_a2c_variants.py --variant long_rollout --timesteps 2000000 --device auto --seed 0
+python train_a2c_variants.py --variant low_lr_stable --timesteps 2000000 --device auto --seed 0
+python train_a2c_variants.py --variant sla_safe --timesteps 2000000 --device auto --seed 0
 
 
-
-
-python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
-
-
-
-(base) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$  conda activate rl-cloud-autoscaler
-(rl-cloud-autoscaler) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$ python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
-Traceback (most recent call last):
-  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 379, in <module>
-    main()
-  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 315, in main
-    adapter = load_adapter(spec)
-  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 143, in load_adapter
-    model = spec.model_class.load(spec.model_path)
-  File "/home/yaya0002/miniconda3/envs/rl-cloud-autoscaler/lib/python3.10/site-packages/stable_baselines3/common/base_class.py", line 730, in load
-    model = cls(
-  File "/mnt/e/RL/RL-Cloud-Autoscaler/vanilla_dqn.py", line 35, in __init__
-    super().__init__(
-TypeError: base_dqn.BaseDQN.__init__() got multiple values for keyword argument 'policy'
-(rl-cloud-autoscaler) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$ 
+python train_recurrent_ppo_variants.py --variant balanced --timesteps 2000000 --device auto --seed 0
+python train_recurrent_ppo_variants.py --variant stable --timesteps 2000000 --device auto --seed 0
+python train_recurrent_ppo_variants.py --variant memory256 --timesteps 2000000 --device auto --seed 0
+python train_recurrent_ppo_variants.py --variant long_sequence --timesteps 2000000 --device auto --seed 0
+python train_recurrent_ppo_variants.py --variant robust_spikes --timesteps 2000000 --device auto --seed 0
