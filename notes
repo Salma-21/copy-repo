@@ -31,3 +31,21 @@ Ppo recurrent
 
 
 python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
+
+
+
+(base) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$  conda activate rl-cloud-autoscaler
+(rl-cloud-autoscaler) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$ python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
+Traceback (most recent call last):
+  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 379, in <module>
+    main()
+  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 315, in main
+    adapter = load_adapter(spec)
+  File "/mnt/e/RL/RL-Cloud-Autoscaler/main_algorithm_comparison_adapter.py", line 143, in load_adapter
+    model = spec.model_class.load(spec.model_path)
+  File "/home/yaya0002/miniconda3/envs/rl-cloud-autoscaler/lib/python3.10/site-packages/stable_baselines3/common/base_class.py", line 730, in load
+    model = cls(
+  File "/mnt/e/RL/RL-Cloud-Autoscaler/vanilla_dqn.py", line 35, in __init__
+    super().__init__(
+TypeError: base_dqn.BaseDQN.__init__() got multiple values for keyword argument 'policy'
+(rl-cloud-autoscaler) yaya0002@L09P18:/mnt/e/RL/RL-Cloud-Autoscaler$ 
