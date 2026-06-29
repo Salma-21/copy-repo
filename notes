@@ -26,3 +26,8 @@ Dueling dqn
 Double/Dueling dqn
 Ppo
 Ppo recurrent
+
+
+
+
+python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
