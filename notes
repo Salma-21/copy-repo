@@ -10,3 +10,6 @@ python train_recurrent_ppo_variants.py --variant stable --timesteps 2000000 --de
 python train_recurrent_ppo_variants.py --variant memory256 --timesteps 2000000 --device auto --seed 0
 python train_recurrent_ppo_variants.py --variant long_sequence --timesteps 2000000 --device auto --seed 0
 python train_recurrent_ppo_variants.py --variant robust_spikes --timesteps 2000000 --device auto --seed 0
+
+
+pip install sb3-contrib
