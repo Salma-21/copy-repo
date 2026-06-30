@@ -1,1 +1,1 @@
-python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4 --out-dir results/main_algorithm_comparison
+python traffic_stress_test_adapter.py --seeds 0,1,2,3,4 --out-dir results/traffic_stress_test
