@@ -1,3 +1,31 @@
+
+python variant_comparison_adapter.py --seeds 0,1,2,3,4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 |    active_servers_mean          | 6.5      |
 |    dropped_requests_per_episode | 0        |
 |    queue_length_mean            | 10.2     |
