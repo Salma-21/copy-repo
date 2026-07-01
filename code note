@@ -1,36 +1,17 @@
-In the PowerPoint:
-Risk: not found
-Mitigation / mitigate: not found
-Timeline: not found
-Planned / schedule / contingency: not found
-Member responsibilities: found on slide 31
-So the presentation does assign work to team members, for example:
-Sherouk: DistilBERT preprocessing, layer-freezing, data-size ablation
-Mostafa: baselines, sequence-length ablation, comparison, discussion
-Salma: TinyBERT ablations and efficiency metrics
-But it still does not include the missing part the grader wanted:
-Risk assessment + mitigation strategy
+Those are our ablations 
+--------------------------------
 
+1) Main algorithm comparison. {Salma}
+Train PPO, PPO-Sparsity, DQN-Dueling, and DQN-Doubling on the exact same traffic patterns, state space, reward function, and action limits. Report mean and standard deviation over at least 5 random seeds for return, latency, cost, dropped requests, and action stability.
 
+2) Sparse-update ablation. {Sherouk}
+For each base algorithm, vary the update frequency, such as every step, every 2 steps, every 4 steps, and every 8 steps. This directly tests whether sparse updates improve compute efficiency or hurt control quality, which matches your proposal and the sparse-update idea in the literature.
 
-Here, the situation is better, but still not perfect for the exact comment.
-This development log does include:
-A weekly timeline: Week 1 to Week 7
-Dates for each week
-Specific tasks assigned to students
-Progress per student
-Issues encountered
-Resolutions
-Who resolved each issue
-For example:
-Week 5:
-Sherouk implemented layer-freezing ablation...
-Issue: Compute budget did not allow full fine-grained search.
-Resolution: Ran a coarse search only.
-Resolved by: Sherouk.
-So this file does address the “student assignment per planned task” part much better than the PDF or PPT.
-But it still does not explicitly use:
-Risk Assessment
-Mitigation Strategy
-It uses:
-Issues & How They Were Resolved
+3) Traffic-stress test. {Salma}
+Evaluate on deterministic traffic, Poisson arrivals, and bursty spike traffic. This is important because cloud autoscaling papers often stress that policies must generalize to workload variation, not just one smooth demand pattern.
+
+4) Cold-start test. {Yehya}
+Compare performance with and without booting delay. This is one of the best experiments for autoscaling, because proactive policies only matter when the system cannot react instantly.
+
+5) Reward-shaping sensitivity. {Yehya}
+Sweep the reward weights 𝛼,𝛽,𝛾,𝜔 and see how much each algorithm depends on the penalty design. This helps show whether one method is inherently more robust or just more sensitive to reward tuning
