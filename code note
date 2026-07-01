@@ -1,1 +1,12 @@
-python traffic_stress_test_adapter.py --seeds 0,1,2,3,4 --out-dir results/traffic_stress_test
+In the PowerPoint:
+Risk: not found
+Mitigation / mitigate: not found
+Timeline: not found
+Planned / schedule / contingency: not found
+Member responsibilities: found on slide 31
+So the presentation does assign work to team members, for example:
+Sherouk: DistilBERT preprocessing, layer-freezing, data-size ablation
+Mostafa: baselines, sequence-length ablation, comparison, discussion
+Salma: TinyBERT ablations and efficiency metrics
+But it still does not include the missing part the grader wanted:
+Risk assessment + mitigation strategy
