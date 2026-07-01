@@ -10,3 +10,27 @@ Mostafa: baselines, sequence-length ablation, comparison, discussion
 Salma: TinyBERT ablations and efficiency metrics
 But it still does not include the missing part the grader wanted:
 Risk assessment + mitigation strategy
+
+
+
+Here, the situation is better, but still not perfect for the exact comment.
+This development log does include:
+A weekly timeline: Week 1 to Week 7
+Dates for each week
+Specific tasks assigned to students
+Progress per student
+Issues encountered
+Resolutions
+Who resolved each issue
+For example:
+Week 5:
+Sherouk implemented layer-freezing ablation...
+Issue: Compute budget did not allow full fine-grained search.
+Resolution: Ran a coarse search only.
+Resolved by: Sherouk.
+So this file does address the “student assignment per planned task” part much better than the PDF or PPT.
+But it still does not explicitly use:
+Risk Assessment
+Mitigation Strategy
+It uses:
+Issues & How They Were Resolved
