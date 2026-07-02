@@ -10,9 +10,9 @@ class AgentAdapter:
         self.name = name
 
     def reset_episode(self, num_envs=1):
-        """Reset any per-episode state."""
+        pass
 
-    def predict(self, obs, done):
+    def predict(self, obs, done=None):
         raise NotImplementedError
 
 
@@ -52,26 +52,8 @@ class RecurrentPPOAdapter(AgentAdapter):
         return action
 
 
-class NoScalingBaselineAdapter(AgentAdapter):
-    """Non-learning baseline that always chooses the no-change action."""
-
-    def __init__(self, action=1):
-        super().__init__("No-Scaling Baseline")
-        self.action = action
-        self.num_envs = 1
-
-    def reset_episode(self, num_envs=1):
-        self.num_envs = num_envs
-
-    def reset(self):
-        self.reset_episode(1)
-
-    def predict(self, obs, done=None):
-        return np.full((self.num_envs,), self.action, dtype=np.int64)
-
-
 class BaselineAdapter(AgentAdapter):
-    """Generic wrapper for any baseline object that has predict()."""
+    """Adapter for RuleBasedBaseline from baseline_agent.py."""
 
     def __init__(self, name, model):
         super().__init__(name)
