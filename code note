@@ -3,8 +3,8 @@ python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
 
 PS E:\salma version of project rl\RL-Cloud-Autoscaler> python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
 Traceback (most recent call last):
-  File "E:\salma version of project rl\RL-Cloud-Autoscaler\main_algorithm_comparison_adapter.py", line 33, in <module>
-    import matplotlib.pyplot as plt
-ModuleNotFoundError: No module named 'matplotlib'
+  File "E:\salma version of project rl\RL-Cloud-Autoscaler\main_algorithm_comparison_adapter.py", line 35, in <module>
+    from stable_baselines3 import A2C, DQN, PPO
+ModuleNotFoundError: No module named 'stable_baselines3'
 PS E:\salma version of project rl\RL-Cloud-Autoscaler> 
 
