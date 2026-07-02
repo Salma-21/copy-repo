@@ -8,3 +8,4 @@ Traceback (most recent call last):
 ModuleNotFoundError: No module named 'stable_baselines3'
 PS E:\salma version of project rl\RL-Cloud-Autoscaler> 
 
+python -m pip install stable-baselines3 sb3-contrib gymnasium torch
