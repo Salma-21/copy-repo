@@ -1,11 +1,1 @@
-python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
-
-
-PS E:\salma version of project rl\RL-Cloud-Autoscaler> python main_algorithm_comparison_adapter.py --seeds 0,1,2,3,4
-Traceback (most recent call last):
-  File "E:\salma version of project rl\RL-Cloud-Autoscaler\main_algorithm_comparison_adapter.py", line 35, in <module>
-    from stable_baselines3 import A2C, DQN, PPO
-ModuleNotFoundError: No module named 'stable_baselines3'
-PS E:\salma version of project rl\RL-Cloud-Autoscaler> 
-
-python -m pip install stable-baselines3 sb3-contrib gymnasium torch
+python traffic_stress_test_adapter.py --seeds 0,1,2,3,4
