@@ -1,13 +1,4 @@
-"""Traffic stress test for final trained autoscaling agents.
-
-This script evaluates the same selected/final models under:
-- deterministic traffic
-- Poisson-only stochastic traffic
-- bursty spike traffic
-
-It does not retrain models. It only tests generalization under different
-traffic patterns.
-"""
+"""Traffic stress test for final trained autoscaling agents."""
 
 import argparse
 import csv
@@ -20,11 +11,8 @@ import numpy as np
 from stable_baselines3 import A2C, DQN, PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 
-from agent_adapters import (
-    NoScalingBaselineAdapter,
-    RecurrentPPOAdapter,
-    SB3AgentAdapter,
-)
+from agent_adapters import BaselineAdapter, RecurrentPPOAdapter, SB3AgentAdapter
+from baseline_agent import RuleBasedBaseline
 from env_factory import make_env
 
 try:
@@ -56,84 +44,21 @@ class TrafficSpec:
 
 
 MODEL_SPECS = [
-    ModelSpec(
-        name="PPO",
-        model_type="sb3",
-        model_class=PPO,
-        model_path="./models/best_ppo/best_model.zip",
-        vecnorm_path="./models/vecnormalize_ppo.pkl",
-    ),
-    ModelSpec(
-        name="A2C Final",
-        model_type="sb3",
-        model_class=A2C,
-        model_path="./models/best_final_a2c/best_model.zip",
-        vecnorm_path="./models/best_final_a2c/vecnormalize.pkl",
-    ),
-    ModelSpec(
-        name="PPO-LSTM Final",
-        model_type="recurrent",
-        model_path="./models/best_final_recurrent_ppo/best_model.zip",
-        vecnorm_path="./models/best_final_recurrent_ppo/vecnormalize.pkl",
-    ),
-    ModelSpec(
-        name="Vanilla DQN freq1",
-        model_type="dqn",
-        model_path="./models/best_vanilla_dqn_freq1/best_model.zip",
-        vecnorm_path="./models/vecnormalize_vanilla_dqn_freq1.pkl",
-    ),
-    ModelSpec(
-        name="Double DQN freq1",
-        model_type="dqn",
-        model_path="./models/best_double_dqn_freq1/best_model.zip",
-        vecnorm_path="./models/vecnormalize_double_dqn_freq1.pkl",
-    ),
-    ModelSpec(
-        name="Dueling DQN freq1",
-        model_type="dqn",
-        model_path="./models/best_dueling_dqn_freq1/best_model.zip",
-        vecnorm_path="./models/vecnormalize_dueling_dqn_freq1.pkl",
-        custom_policy=DuelingDQNPolicy,
-    ),
-    ModelSpec(
-        name="Double+Dueling DQN freq1",
-        model_type="dqn",
-        model_path="./models/best_double_dueling_dqn_freq1/best_model.zip",
-        vecnorm_path="./models/vecnormalize_double_dueling_dqn_freq1.pkl",
-        custom_policy=DoubleDuelingDQNPolicy,
-    ),
-    ModelSpec(
-        name="No-Scaling Baseline",
-        model_type="baseline",
-    ),
+    ModelSpec("PPO", "sb3", "./models/best_ppo/best_model.zip", "./models/vecnormalize_ppo.pkl", PPO),
+    ModelSpec("A2C Final", "sb3", "./models/best_final_a2c/best_model.zip", "./models/best_final_a2c/vecnormalize.pkl", A2C),
+    ModelSpec("PPO-LSTM Final", "recurrent", "./models/best_final_recurrent_ppo/best_model.zip", "./models/best_final_recurrent_ppo/vecnormalize.pkl"),
+    ModelSpec("Vanilla DQN freq1", "dqn", "./models/best_vanilla_dqn_freq1/best_model.zip", "./models/vecnormalize_vanilla_dqn_freq1.pkl"),
+    ModelSpec("Double DQN freq1", "dqn", "./models/best_double_dqn_freq1/best_model.zip", "./models/vecnormalize_double_dqn_freq1.pkl"),
+    ModelSpec("Dueling DQN freq1", "dqn", "./models/best_dueling_dqn_freq1/best_model.zip", "./models/vecnormalize_dueling_dqn_freq1.pkl", custom_policy=DuelingDQNPolicy),
+    ModelSpec("Double+Dueling DQN freq1", "dqn", "./models/best_double_dueling_dqn_freq1/best_model.zip", "./models/vecnormalize_double_dueling_dqn_freq1.pkl", custom_policy=DoubleDuelingDQNPolicy),
+    ModelSpec("Rule-Based Baseline", "baseline"),
 ]
 
 
 TRAFFIC_CASES = [
-    TrafficSpec(
-        name="deterministic",
-        env_kwargs={
-            "traffic_mode": "deterministic",
-            "traffic_kwargs": {"spike_probability": 0.0},
-        },
-    ),
-    TrafficSpec(
-        name="poisson_only",
-        env_kwargs={
-            "traffic_mode": "stochastic",
-            "traffic_kwargs": {"spike_probability": 0.0},
-        },
-    ),
-    TrafficSpec(
-        name="bursty_spikes",
-        env_kwargs={
-            "traffic_mode": "stochastic",
-            "traffic_kwargs": {
-                "spike_probability": 0.05,
-                "spike_multiplier": 3.0,
-            },
-        },
-    ),
+    TrafficSpec("deterministic", {"traffic_mode": "deterministic", "traffic_kwargs": {"spike_probability": 0.0}}),
+    TrafficSpec("poisson_only", {"traffic_mode": "stochastic", "traffic_kwargs": {"spike_probability": 0.0}}),
+    TrafficSpec("bursty_spikes", {"traffic_mode": "stochastic", "traffic_kwargs": {"spike_probability": 0.05, "spike_multiplier": 3.0}}),
 ]
 
 
@@ -165,7 +90,8 @@ def load_dqn_model(spec):
 
 def load_adapter(spec):
     if spec.model_type == "baseline":
-        return NoScalingBaselineAdapter(action=1), None
+        baseline = RuleBasedBaseline()
+        return BaselineAdapter(spec.name, baseline), None
 
     if not os.path.exists(spec.model_path):
         print(f"[SKIP] {spec.name}: missing model {spec.model_path}")
@@ -179,7 +105,6 @@ def load_adapter(spec):
         if RecurrentPPO is None:
             print(f"[SKIP] {spec.name}: sb3-contrib is not installed.")
             return None, None
-
         model = RecurrentPPO.load(spec.model_path)
         return RecurrentPPOAdapter(spec.name, model), spec.vecnorm_path
 
@@ -194,14 +119,12 @@ def load_adapter(spec):
 def run_episode(adapter, env, max_queue=500):
     obs = env.reset()
     done = np.array([False])
-
     adapter.reset_episode(num_envs=env.num_envs)
 
     total_return = 0.0
     total_cost = 0.0
     total_dropped = 0.0
     total_queue = 0.0
-
     previous_action = None
     action_switches = 0
     steps = 0
@@ -257,9 +180,7 @@ def summarize(rows):
     for metric in metrics:
         values = np.array([row[metric] for row in rows], dtype=float)
         summary[f"{metric}_mean"] = float(values.mean())
-        summary[f"{metric}_std"] = (
-            float(values.std(ddof=1)) if len(values) > 1 else 0.0
-        )
+        summary[f"{metric}_std"] = float(values.std(ddof=1)) if len(values) > 1 else 0.0
 
     return summary
 
@@ -270,9 +191,8 @@ def write_csv(path, rows):
 
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    fieldnames = list(rows[0].keys())
     with open(path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 
@@ -287,40 +207,25 @@ def write_json(path, data):
 def plot_grouped_metric(summary_rows, metric, out_dir):
     traffic_names = [case.name for case in TRAFFIC_CASES]
     algorithms = sorted({row["algorithm"] for row in summary_rows})
-
     x = np.arange(len(traffic_names))
     width = 0.8 / max(1, len(algorithms))
 
-    plt.figure(figsize=(15, 6))
+    plt.figure(figsize=(16, 6))
 
     for i, algorithm in enumerate(algorithms):
-        values = []
-        errors = []
+        means = []
+        stds = []
 
         for traffic_name in traffic_names:
             match = [
-                row
-                for row in summary_rows
-                if row["algorithm"] == algorithm
-                and row["traffic_case"] == traffic_name
+                row for row in summary_rows
+                if row["algorithm"] == algorithm and row["traffic_case"] == traffic_name
             ]
-
-            if match:
-                values.append(match[0][f"{metric}_mean"])
-                errors.append(match[0][f"{metric}_std"])
-            else:
-                values.append(0.0)
-                errors.append(0.0)
+            means.append(match[0][f"{metric}_mean"] if match else 0.0)
+            stds.append(match[0][f"{metric}_std"] if match else 0.0)
 
         offset = (i - (len(algorithms) - 1) / 2) * width
-        plt.bar(
-            x + offset,
-            values,
-            width,
-            yerr=errors,
-            capsize=3,
-            label=algorithm,
-        )
+        plt.bar(x + offset, means, width, yerr=stds, capsize=3, label=algorithm)
 
     plt.xticks(x, traffic_names)
     plt.ylabel(metric.replace("_", " "))
@@ -329,8 +234,7 @@ def plot_grouped_metric(summary_rows, metric, out_dir):
     plt.legend(fontsize=8, ncol=2)
     plt.tight_layout()
 
-    path = os.path.join(out_dir, f"{metric}.png")
-    plt.savefig(path, dpi=200)
+    plt.savefig(os.path.join(out_dir, f"{metric}.png"), dpi=200)
     plt.close()
 
 
@@ -338,28 +242,19 @@ def plot_traffic_curve(summary_rows, metric, out_dir):
     traffic_names = [case.name for case in TRAFFIC_CASES]
     algorithms = sorted({row["algorithm"] for row in summary_rows})
 
-    plt.figure(figsize=(11, 5))
+    plt.figure(figsize=(12, 5))
 
     for algorithm in algorithms:
         values = []
 
         for traffic_name in traffic_names:
             match = [
-                row
-                for row in summary_rows
-                if row["algorithm"] == algorithm
-                and row["traffic_case"] == traffic_name
+                row for row in summary_rows
+                if row["algorithm"] == algorithm and row["traffic_case"] == traffic_name
             ]
-
             values.append(match[0][f"{metric}_mean"] if match else np.nan)
 
-        plt.plot(
-            traffic_names,
-            values,
-            marker="o",
-            linewidth=2,
-            label=algorithm,
-        )
+        plt.plot(traffic_names, values, marker="o", linewidth=2, label=algorithm)
 
     plt.ylabel(metric.replace("_", " "))
     plt.title(f"Traffic Stress Curve: {metric.replace('_', ' ')}")
@@ -367,8 +262,7 @@ def plot_traffic_curve(summary_rows, metric, out_dir):
     plt.legend(fontsize=8, ncol=2)
     plt.tight_layout()
 
-    path = os.path.join(out_dir, f"{metric}_traffic_curve.png")
-    plt.savefig(path, dpi=200)
+    plt.savefig(os.path.join(out_dir, f"{metric}_traffic_curve.png"), dpi=200)
     plt.close()
 
 
@@ -393,12 +287,9 @@ def plot_all_traffic_curves(summary_rows, out_dir):
 
             for traffic_name in traffic_names:
                 match = [
-                    row
-                    for row in summary_rows
-                    if row["algorithm"] == algorithm
-                    and row["traffic_case"] == traffic_name
+                    row for row in summary_rows
+                    if row["algorithm"] == algorithm and row["traffic_case"] == traffic_name
                 ]
-
                 values.append(match[0][f"{metric}_mean"] if match else np.nan)
 
             ax.plot(traffic_names, values, marker="o", linewidth=2, label=algorithm)
@@ -408,13 +299,13 @@ def plot_all_traffic_curves(summary_rows, out_dir):
         ax.tick_params(axis="x", rotation=15)
 
     axes[-1].axis("off")
+
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=4, fontsize=8)
     fig.suptitle("Traffic Stress Test Summary", fontsize=14)
     fig.tight_layout(rect=(0, 0.08, 1, 0.95))
 
-    path = os.path.join(out_dir, "all_traffic_curves.png")
-    fig.savefig(path, dpi=200)
+    fig.savefig(os.path.join(out_dir, "all_traffic_curves.png"), dpi=200)
     plt.close(fig)
 
 
@@ -427,30 +318,16 @@ def print_summary(summary_rows):
         rows = [row for row in summary_rows if row["traffic_case"] == traffic_case]
         for row in rows:
             print(f"  {row['algorithm']}")
-            print(
-                f"    Return: {row['return_mean']:.2f} +/- {row['return_std']:.2f}"
-            )
-            print(
-                "    Latency proxy: "
-                f"{row['latency_proxy_mean']:.4f} +/- "
-                f"{row['latency_proxy_std']:.4f}"
-            )
+            print(f"    Return: {row['return_mean']:.2f} +/- {row['return_std']:.2f}")
+            print(f"    Latency proxy: {row['latency_proxy_mean']:.4f} +/- {row['latency_proxy_std']:.4f}")
             print(f"    Cost: {row['cost_mean']:.2f} +/- {row['cost_std']:.2f}")
-            print(
-                "    Dropped requests: "
-                f"{row['dropped_requests_mean']:.2f} +/- "
-                f"{row['dropped_requests_std']:.2f}"
-            )
-            print(
-                "    Action stability: "
-                f"{row['action_stability_mean']:.4f} +/- "
-                f"{row['action_stability_std']:.4f}"
-            )
+            print(f"    Dropped requests: {row['dropped_requests_mean']:.2f} +/- {row['dropped_requests_std']:.2f}")
+            print(f"    Action stability: {row['action_stability_mean']:.4f} +/- {row['action_stability_std']:.4f}")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Evaluate final models under different traffic patterns."
+        description="Evaluate final models under deterministic, Poisson, and bursty traffic."
     )
 
     parser.add_argument(
@@ -511,14 +388,12 @@ def main():
                 rows_for_group.append(row)
 
             summary = summarize(rows_for_group)
-            summary_row = {
+            summary_rows.append({
                 "traffic_case": traffic_case.name,
                 "algorithm": adapter.name,
                 "num_seeds": len(seeds),
                 **summary,
-            }
-
-            summary_rows.append(summary_row)
+            })
 
     os.makedirs(args.out_dir, exist_ok=True)
 
